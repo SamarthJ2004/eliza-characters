@@ -4,7 +4,7 @@
     "modelProvider": "groq",
     "settings": {
         "secrets": {
-            "GROQ_API_KEY":"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"
+            "GROQ_API_KEY":"grok_api_key_here"
         },
         "voice": {
             "model": "en_US-male-medium"
