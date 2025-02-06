@@ -113,6 +113,7 @@ export async function loadCharacters(charactersArg) {
 }
 
 export function getTokenForProvider(provider, character) {
+  dotenv.config();
   switch (provider) {
     case ModelProviderName.OPENAI:
       return (
@@ -149,8 +150,8 @@ export function getTokenForProvider(provider, character) {
         character.settings?.secrets?.OPENROUTER || settings.OPENROUTER_API_KEY
       );
 
-    case ModelProviderName.GROK:
-      return character.settings?.secrets?.GROK_API_KEY || settings.GROK_API_KEY;
+    case ModelProviderName.GROQ:
+      return process.env.GROQ_API_KEY || settings.GROQ_API_KEY;
 
     case ModelProviderName.HEURIST:
       return (
@@ -184,8 +185,8 @@ export async function generateModelResponse(prompt, character) {
           body: JSON.stringify({
             model: "mixtral-8x7b-32768",
             messages: [{ role: "user", content: prompt }],
-            temperature: 0.7,
-            max_tokens: 1024,
+            temperature: 0.8,
+            max_tokens: 400,
           }),
         }
       );

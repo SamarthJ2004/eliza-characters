@@ -1,5 +1,3 @@
-// debateConfig.js
-// import { Character, ModelProviderName } from "@elizaos/core";
 import { loadCharacters, getTokenForProvider } from "./config.js";
 
 export async function initializeDebateConfig(characterFiles, topic) {

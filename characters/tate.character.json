@@ -3,9 +3,7 @@
     "clients": [],
     "modelProvider": "groq",
     "settings": {
-        "secrets": {
-            "GROQ_API_KEY": "grok_api_key_here"
-        },
+        "secrets": {},
         "voice": {
             "model": "en_UK-male-medium"
         }

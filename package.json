@@ -1,10 +1,10 @@
 {
   "type": "module",
   "dependencies": {
-    "@elizaos/core": "latest",
-    "express": "^4.18.2",
-    "sharp": "^0.33.5",
-    "yargs": "^17.7.2"
+    "@elizaos/core": "0.1.9",
+    "express": "4.18.2",
+    "sharp": "0.33.5",
+    "yargs": "17.7.2"
   },
   "scripts": {
     "start": "node server.js",

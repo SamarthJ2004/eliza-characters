@@ -77,7 +77,7 @@ Topic: ${debate.topic}
 Previous messages: ${debate.messages
       .map((m) => `${m.character}: ${m.content}`)
       .join("\n")}
-Generate your response:`;
+You should be in roast mode trying to win the battle.Keep your language similar to what has been provided in your character sketch.Keep your responses short within 4 lines.Generate your responses:`;
 
     const response = await generateModelResponse(prompt, character);
 
