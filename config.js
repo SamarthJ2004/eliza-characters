@@ -9,6 +9,25 @@ import dotenv from "dotenv";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+export function getTokenForProvider(provider) {
+  // First check for Autonome's API key
+  if (process.env.API_KEY) {
+    return process.env.API_KEY;  // This is what Autonome will provide
+  }
+
+  // Fallback to other sources
+  switch (provider) {
+    case 'groq':
+      return process.env.GROQ_API_KEY;
+    
+    case 'llama_local':
+      return 'local';
+    
+    default:
+      return null;
+  }
+}
+
 export function loadEnvironment() {
   // Load from .env file
   dotenv.config();
@@ -116,62 +135,62 @@ export async function loadCharacters(charactersArg) {
   return loadedCharacters;
 }
 
-export function getTokenForProvider(provider, character) {
-  dotenv.config();
-  switch (provider) {
-    case ModelProviderName.OPENAI:
-      return (
-        character.settings?.secrets?.OPENAI_API_KEY || settings.OPENAI_API_KEY
-      );
+// export function getTokenForProvider(provider, character) {
+//   dotenv.config();
+//   switch (provider) {
+//     case ModelProviderName.OPENAI:
+//       return (
+//         character.settings?.secrets?.OPENAI_API_KEY || settings.OPENAI_API_KEY
+//       );
 
-    case ModelProviderName.LLAMACLOUD:
-      return (
-        character.settings?.secrets?.LLAMACLOUD_API_KEY ||
-        settings.LLAMACLOUD_API_KEY ||
-        character.settings?.secrets?.TOGETHER_API_KEY ||
-        settings.TOGETHER_API_KEY ||
-        character.settings?.secrets?.XAI_API_KEY ||
-        settings.XAI_API_KEY ||
-        character.settings?.secrets?.OPENAI_API_KEY ||
-        settings.OPENAI_API_KEY
-      );
+//     case ModelProviderName.LLAMACLOUD:
+//       return (
+//         character.settings?.secrets?.LLAMACLOUD_API_KEY ||
+//         settings.LLAMACLOUD_API_KEY ||
+//         character.settings?.secrets?.TOGETHER_API_KEY ||
+//         settings.TOGETHER_API_KEY ||
+//         character.settings?.secrets?.XAI_API_KEY ||
+//         settings.XAI_API_KEY ||
+//         character.settings?.secrets?.OPENAI_API_KEY ||
+//         settings.OPENAI_API_KEY
+//       );
 
-    case ModelProviderName.ANTHROPIC:
-      return (
-        character.settings?.secrets?.ANTHROPIC_API_KEY ||
-        character.settings?.secrets?.CLAUDE_API_KEY ||
-        settings.ANTHROPIC_API_KEY ||
-        settings.CLAUDE_API_KEY
-      );
+//     case ModelProviderName.ANTHROPIC:
+//       return (
+//         character.settings?.secrets?.ANTHROPIC_API_KEY ||
+//         character.settings?.secrets?.CLAUDE_API_KEY ||
+//         settings.ANTHROPIC_API_KEY ||
+//         settings.CLAUDE_API_KEY
+//       );
 
-    case ModelProviderName.REDPILL:
-      return (
-        character.settings?.secrets?.REDPILL_API_KEY || settings.REDPILL_API_KEY
-      );
+//     case ModelProviderName.REDPILL:
+//       return (
+//         character.settings?.secrets?.REDPILL_API_KEY || settings.REDPILL_API_KEY
+//       );
 
-    case ModelProviderName.OPENROUTER:
-      return (
-        character.settings?.secrets?.OPENROUTER || settings.OPENROUTER_API_KEY
-      );
+//     case ModelProviderName.OPENROUTER:
+//       return (
+//         character.settings?.secrets?.OPENROUTER || settings.OPENROUTER_API_KEY
+//       );
 
-    case ModelProviderName.GROQ:
-      return process.env.GROQ_API_KEY || settings.GROQ_API_KEY;
+//     case ModelProviderName.GROQ:
+//       return process.env.GROQ_API_KEY || settings.GROQ_API_KEY;
 
-    case ModelProviderName.HEURIST:
-      return (
-        character.settings?.secrets?.HEURIST_API_KEY || settings.HEURIST_API_KEY
-      );
+//     case ModelProviderName.HEURIST:
+//       return (
+//         character.settings?.secrets?.HEURIST_API_KEY || settings.HEURIST_API_KEY
+//       );
 
-    case ModelProviderName.LLAMALOCAL:
-      return "local"; // No token needed for local Llama
+//     case ModelProviderName.LLAMALOCAL:
+//       return "local"; // No token needed for local Llama
 
-    default:
-      return null;
-  }
-}
+//     default:
+//       return null;
+//   }
+// }
 
 export async function generateModelResponse(prompt, character) {
-  const token = getTokenForProvider(character.modelProvider, character);
+  const token = getTokenForProvider(character.modelProvider);
   console.log("token: ", token);
 
   switch (character.modelProvider) {
@@ -196,18 +215,18 @@ export async function generateModelResponse(prompt, character) {
       console.log("data:", data);
       return data.choices[0].message.content;
 
-    case ModelProviderName.LLAMA_LOCAL:
-      const llamaResponse = await fetch("http://localhost:11434/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "llama2",
-          prompt,
-          stream: false,
-        }),
-      });
-      const llamaData = await llamaResponse.json();
-      return llamaData.response;
+    // case ModelProviderName.LLAMA_LOCAL:
+    //   const llamaResponse = await fetch("http://localhost:11434/api/generate", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({
+    //       model: "llama2",
+    //       prompt,
+    //       stream: false,
+    //     }),
+    //   });
+    //   const llamaData = await llamaResponse.json();
+    //   return llamaData.response;
 
     // Add other model providers as needed
     default:

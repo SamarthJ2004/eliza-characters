@@ -16,60 +16,58 @@ const cache = new CacheManager(new DbCacheAdapter(memoryCache, "debate"));
 
 const PORT = process.env.PORT || 3000;
 
-// Initialize debate
-app.post("/debates/initialize", async (req, res) => {
+// Main chat endpoint for Autonome
+app.post("/message", async (req, res) => {
   try {
-    const { characterFiles, topic } = req.body;
-    console.log("Initializing debate with:", { characterFiles, topic });
-
-    const characters = await loadCharacters(characterFiles);
-    console.log("characters length:", characters.length);
-    const debateId = Date.now().toString();
-
-    // Store debate data
-    const debateData = {
-      characters: characters.map((c) => c.name),
-      topic,
-      messages: [],
-    };
-
-    await memoryCache.set(`debate:${debateId}`, JSON.stringify(debateData));
-
-    console.log("Debate initialized:", debateId);
-    res.json({
-      debateId,
-      characters: characters.map((c) => ({
-        id: c.name,
-        name: c.name,
-      })),
+    const { text, userId, context, characters: initialCharacters } = req.body;
+    console.log("Received message:", {
+      text,
+      userId,
+      context,
+      initialCharacters,
     });
-  } catch (error) {
-    console.error("Error initializing debate:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
 
-// Get response in debate
-app.post("/debates/:debateId/response", async (req, res) => {
-  try {
-    const { debateId } = req.params;
-    const { characterId, text } = req.body;
-    console.log("req body :", req.body);
-    console.log("Getting response for:", { debateId, characterId });
+    let debateId = context?.debateId;
+    let lastCharacter = context?.lastCharacter;
+    let characters = context?.characters || initialCharacters;
 
+    // Validate characters for new debate
+    if (!debateId && (!characters || characters.length !== 2)) {
+      throw new Error("Need exactly two characters to start a debate");
+    }
+
+    // If no debate exists, initialize one
+    if (!debateId) {
+      // Load the specified characters
+      const loadedCharacters = await loadCharacters(
+        characters.map((c) => `${c}.character.json`).join(",")
+      );
+
+      debateId = Date.now().toString();
+      const debateData = {
+        characters: loadedCharacters.map((c) => c.name),
+        topic: text,
+        messages: [],
+      };
+
+      await memoryCache.set(`debate:${debateId}`, JSON.stringify(debateData));
+      lastCharacter = loadedCharacters[1].name.toLowerCase(); // Start with first character's response
+    }
+
+    // Get the next character (alternate between the two)
+    const nextCharacter =
+      lastCharacter === characters[0] ? characters[1] : characters[0];
+
+    // Get response from the next character
     const debateData = await memoryCache.get(`debate:${debateId}`);
     if (!debateData) {
-      return res.status(404).json({ error: "Debate not found" });
+      throw new Error("Debate not found");
     }
 
     const debate = JSON.parse(debateData);
-    const path = characterId.toLowerCase() + ".character.json";
-    const characters = await loadCharacters(path);
-    const character = characters[0];
-
-    if (!character) {
-      return res.status(404).json({ error: "Character not found" });
-    }
+    const path = nextCharacter + ".character.json";
+    const characterData = await loadCharacters(path);
+    const character = characterData[0];
 
     const prompt = `
 You are ${character.name}.
@@ -77,7 +75,7 @@ Topic: ${debate.topic}
 Previous messages: ${debate.messages
       .map((m) => `${m.character}: ${m.content}`)
       .join("\n")}
-You should be in roast mode trying to win the battle.Keep your language similar to what has been provided in your character sketch.Keep your responses short within 4 lines.Generate your responses:`;
+You should be in roast mode trying to win the battle. Keep your language similar to what has been provided in your character sketch. Keep your responses short within 4 lines. Generate your response:`;
 
     const response = await generateModelResponse(prompt, character);
 
@@ -88,14 +86,30 @@ You should be in roast mode trying to win the battle.Keep your language similar 
 
     await memoryCache.set(`debate:${debateId}`, JSON.stringify(debate));
 
+    // Return response in Autonome format
     res.json({
-      success: true,
-      response,
-      character: character.name,
+      messages: [
+        {
+          text: response,
+          type: "text",
+        },
+      ],
+      context: {
+        debateId: debateId,
+        lastCharacter: nextCharacter,
+        characters: characters, // Include characters array in context
+      },
     });
   } catch (error) {
-    console.error("Error generating response:", error);
-    res.status(500).json({ error: error.message });
+    console.error("Error processing message:", error);
+    res.status(500).json({
+      messages: [
+        {
+          text: "Error: " + error.message,
+          type: "text",
+        },
+      ],
+    });
   }
 });
 
