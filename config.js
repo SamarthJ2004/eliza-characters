@@ -43,6 +43,10 @@ export function initializeSettings() {
   settings.USE_OPENAI_EMBEDDING_TYPE = process.env.USE_OPENAI_EMBEDDING_TYPE;
   settings.USE_OLLAMA_EMBEDDING_TYPE = process.env.USE_OLLAMA_EMBEDDING_TYPE;
   settings.OLLAMA_EMBEDDING_MODEL = process.env.OLLAMA_EMBEDDING_MODEL;
+
+  console.log("Starting application...");
+  console.log("GROQ_API_KEY is", process.env.GROQ_API_KEY ? "set" : "not set");
+  console.log("GROQ_API_KEY length:", process.env.GROQ_API_KEY?.length);
 }
 
 export function parseArguments() {
@@ -158,9 +162,6 @@ export function getTokenForProvider(provider, character) {
         character.settings?.secrets?.HEURIST_API_KEY || settings.HEURIST_API_KEY
       );
 
-    case ModelProviderName.GROQ:
-      return character.settings?.secrets?.GROQ_API_KEY || settings.GROQ_API_KEY;
-
     case ModelProviderName.LLAMALOCAL:
       return "local"; // No token needed for local Llama
 
@@ -171,6 +172,7 @@ export function getTokenForProvider(provider, character) {
 
 export async function generateModelResponse(prompt, character) {
   const token = getTokenForProvider(character.modelProvider, character);
+  console.log("token: ", token);
 
   switch (character.modelProvider) {
     case ModelProviderName.GROQ:
@@ -191,6 +193,7 @@ export async function generateModelResponse(prompt, character) {
         }
       );
       const data = await response.json();
+      console.log("data:", data);
       return data.choices[0].message.content;
 
     case ModelProviderName.LLAMA_LOCAL:
