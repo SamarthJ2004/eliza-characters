@@ -107,14 +107,11 @@ export function loadCharacterSync(filePath) {
 export async function loadCharacters(charactersArg) {
   let characterPaths = charactersArg?.split(",").map((filePath) => {
     if (path.basename(filePath) === filePath) {
-      console.log("FilePath: ", filePath);
       filePath = path.join(__dirname, "characters", filePath);
-      console.log("final filePath: ", filePath);
     }
     return path.resolve(process.cwd(), filePath.trim());
   });
 
-  console.log("character paths: ", characterPaths);
   const loadedCharacters = [];
 
   if (characterPaths?.length > 0) {
@@ -122,8 +119,6 @@ export async function loadCharacters(charactersArg) {
       try {
         const content = fs.readFileSync(characterPath, "utf8");
         const character = JSON.parse(content);
-
-        // validateCharacterConfig(character);
         loadedCharacters.push(character);
       } catch (e) {
         console.error(`Error loading character from ${characterPath}: ${e}`);

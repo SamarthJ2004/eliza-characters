@@ -144,3 +144,22 @@ docker build -t image_name .
   },
   "required": ["messages", "context"]
 }
+
+
+#chracter josn file
+
+{
+  "name": "Character Name",
+  "battlePersona": "Battle Personality Type",
+  "style": {
+    "all": ["style elements"],
+    "chat": ["chat patterns"],
+    "post": ["post patterns"]
+  },
+  "battleStyle": {
+    "signature_elements": {
+      "formatting": ["style rules"],
+      "delivery": ["delivery patterns"]
+    }
+  }
+}
